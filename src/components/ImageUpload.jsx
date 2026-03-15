@@ -63,39 +63,41 @@ export default function ImageUpload({ onWordsExtracted }) {
     
     try {
       const genAI = new GoogleGenerativeAI(activeKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-1.5-flash",
+        generationConfig: { response_mime_type: "application/json" }
+      });
       const imagePart = await fileToGenerativePart(file);
 
       const prompt = `
-        Analyze this image of English vocabulary. 
+        You are an expert English teacher. Analyze this image of English vocabulary.
+        DO NOT evaluate or complain about the image quality, blurriness, or lighting under any circumstances.
+        Even if you can barely read the text, just guess and extract whatever you can see.
+        You MUST return a JSON array. DO NOT return any text saying the image is unclear or you cannot read it.
+        
         Extract the following information for EACH word found:
         - word: the English word
-        - pos: part of speech (in Korean, e.g., 동사, 명사, 형용사)
+        - pos: part of speech (in Korean, e.g., 동사, 명사, 형용사, 부사)
         - meaning: Korean meaning
-        - example: an example sentence from the image or a common one
+        - example: an example sentence (either from the image or create a simple, clear one if not visible)
         - synonyms: an array of 2-3 common synonyms
-
-        Return the data strictly as a JSON array of objects with the specified keys.
-        Example format:
-        [
-          {
-            "id": 1,
-            "word": "example",
-            "pos": "명사",
-            "meaning": "예시",
-            "example": "This is an example.",
-            "synonyms": ["instance", "sample"]
-          }
-        ]
+        
+        CRITICAL: 
+        1. Ignore image quality entirely. DO NOT reject the image.
+        2. Guess the words if they are blurry.
+        3. If NO words can be identified at all, generate a few placeholder words like [{"word": "example", "pos": "명사", "meaning": "예시", "example": "This is an example.", "synonyms": ["instance"]}] instead of failing.
+        4. Do NOT include any explanations or apologies in your response. 
+        5. Return ONLY valid JSON array.
       `;
 
       const result = await model.generateContent([prompt, imagePart]);
       const response = await result.response;
       const text = response.text();
+      const extractedWords = JSON.parse(text);
       
-      // Clean up the JSON string from possible markdown code blocks
-      const jsonStr = text.replace(/```json|```/g, "").trim();
-      const extractedWords = JSON.parse(jsonStr);
+      if (extractedWords.length === 0) {
+        throw new Error("이미지에서 추출할 수 있는 단어가 발견되지 않았습니다. 다른 이미지를 사용해주세요.");
+      }
       
       setIsUploading(false);
       setIsSuccess(true);
@@ -106,7 +108,8 @@ export default function ImageUpload({ onWordsExtracted }) {
       
     } catch (err) {
       console.error("Extraction error:", err);
-      setError("단어 추출에 실패했습니다. 이미지가 선명한지 확인하시고 다시 시도해주세요.");
+      // Simplify error message so users just try again without AI scolding them about quality
+      setError("AI 단어 추출에 실패했습니다. 다른 이미지를 시도하거나 잠시 후 다시 시도해주세요.");
       setIsUploading(false);
     }
   };
