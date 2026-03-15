@@ -106,7 +106,7 @@ export default function ImageUpload({ onWordsExtracted }) {
       
     } catch (err) {
       console.error("Extraction error:", err);
-      setError("Failed to extract words. Please try again with a clearer image.");
+      setError("단어 추출에 실패했습니다. 이미지가 선명한지 확인하시고 다시 시도해주세요.");
       setIsUploading(false);
     }
   };
@@ -132,13 +132,23 @@ export default function ImageUpload({ onWordsExtracted }) {
           <div className="settings-modal">
             <h3>API 키 설정</h3>
             <p>Gemini API 키를 입력해주세요. 이 키는 브라우저에만 안전하게 저장됩니다.</p>
-            <input 
-              type="password" 
-              className="settings-input" 
-              placeholder="AI-..." 
-              value={tempKey}
-              onChange={(e) => setTempKey(e.target.value)}
-            />
+            <div style={{ position: 'relative' }}>
+              <input 
+                type="text" 
+                className="settings-input" 
+                placeholder="AI-..." 
+                value={tempKey}
+                onChange={(e) => setTempKey(e.target.value)}
+              />
+              {tempKey && (
+                <button 
+                  style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}
+                  onClick={() => setTempKey('')}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
             <div className="settings-actions">
               <button className="btn btn-outline" onClick={() => setShowSettings(false)}>취소</button>
               <button className="btn btn-primary" onClick={() => {
@@ -292,9 +302,16 @@ export default function ImageUpload({ onWordsExtracted }) {
         .settings-input {
           width: 100%;
           padding: 0.75rem;
-          border: 1px solid #e2e8f0;
+          border: 1px solid #cbd5e1;
           border-radius: 0.5rem;
           margin: 1rem 0;
+          font-size: 0.875rem;
+          transition: all 0.2s;
+        }
+        .settings-input:focus {
+          outline: none;
+          border-color: var(--primary-color);
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
         .settings-actions {
           display: flex;
