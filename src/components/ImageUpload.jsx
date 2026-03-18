@@ -64,7 +64,7 @@ export default function ImageUpload({ onWordsExtracted }) {
     try {
       const genAI = new GoogleGenerativeAI(activeKey);
       const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
+        model: "gemini-3-flash-preview",
         generationConfig: { response_mime_type: "application/json" }
       });
       const imagePart = await fileToGenerativePart(file);
@@ -108,8 +108,20 @@ export default function ImageUpload({ onWordsExtracted }) {
       
     } catch (err) {
       console.error("Extraction error:", err);
+      console.error("Error details:", {
+        message: err.message,
+        name: err.name,
+        stack: err.stack,
+        status: err.status
+      });
+      
+      let errorMsg = "AI 단어 추출에 실패했습니다. 다른 이미지를 시도하거나 잠시 후 다시 시도해주세요.";
+      if (err.message) {
+         errorMsg += `\n상세 에러: ${err.message}`;
+      }
+      
       // Simplify error message so users just try again without AI scolding them about quality
-      setError("AI 단어 추출에 실패했습니다. 다른 이미지를 시도하거나 잠시 후 다시 시도해주세요.");
+      setError(errorMsg);
       setIsUploading(false);
     }
   };
@@ -257,6 +269,10 @@ export default function ImageUpload({ onWordsExtracted }) {
           flex-direction: column;
           align-items: center;
           gap: 1rem;
+        }
+        .upload-status p {
+          white-space: pre-wrap;
+          word-break: break-word;
         }
         .upload-status h3 {
           margin-top: 1rem;
