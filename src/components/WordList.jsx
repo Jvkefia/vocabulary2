@@ -1,19 +1,199 @@
-import React, { useState } from 'react';
-import { LayoutGrid, List, Play, Volume2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { LayoutGrid, List, Play, Volume2, Save, Trash2, ArrowLeft, Book } from 'lucide-react';
 
-export default function WordList({ words, onStartStudy }) {
+export default function WordList({ 
+  words, 
+  vocabularies, 
+  currentVocabId, 
+  onSave, 
+  onDelete, 
+  onSelect, 
+  onStartStudy 
+}) {
   const [viewMode, setViewMode] = useState('card'); // 'card' or 'table'
+  const [listName, setListName] = useState('');
+  const [isManaging, setIsManaging] = useState(false);
 
-  if (!words || words.length === 0) return null;
+  // If no words are loaded and we have vocabularies, or if user was browsing vocabularies
+  const showVocabularies = isManaging || (!words || words.length === 0);
+
+  useEffect(() => {
+    if (!words || words.length === 0) {
+      setIsManaging(true);
+    }
+  }, [words]);
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    if (!listName.trim()) return;
+    onSave(listName);
+    setListName('');
+  };
+
+  const currentVocab = vocabularies.find(v => v.id === currentVocabId);
+
+  if (showVocabularies) {
+    return (
+      <div className="wordlist-container animate-fade-in">
+        <div className="wordlist-header">
+          <div className="header-left">
+            <h2>My Vocabularies</h2>
+            <span className="badge">{vocabularies.length} lists</span>
+          </div>
+          {words && words.length > 0 && (
+            <button className="btn btn-outline" onClick={() => setIsManaging(false)}>
+              <ArrowLeft size={18} /> Back to Current
+            </button>
+          )}
+        </div>
+
+        {vocabularies.length === 0 ? (
+          <div className="empty-state">
+            <Book size={48} className="text-muted" />
+            <h3>No vocabularies yet</h3>
+            <p>Upload an image to extract words and create your first list!</p>
+          </div>
+        ) : (
+          <div className="vocab-grid">
+            {vocabularies.map((voc) => (
+              <div key={voc.id} className="vocab-card">
+                <div className="vocab-card-content" onClick={() => {
+                  onSelect(voc);
+                  setIsManaging(false);
+                }}>
+                  <div className="vocab-icon">
+                    <Book size={24} />
+                  </div>
+                  <div className="vocab-info">
+                    <h3>{voc.name}</h3>
+                    <p>{voc.words.length} words • {new Date(voc.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+                <button 
+                  className="vocab-delete-btn" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(voc.id);
+                  }}
+                  title="Delete Vocabulary"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <style>{`
+          .vocab-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+          }
+          .vocab-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+            box-shadow: var(--shadow-sm);
+          }
+          .vocab-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-color);
+          }
+          .vocab-card-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+          }
+          .vocab-icon {
+            width: 48px;
+            height: 48px;
+            background: #eff6ff;
+            color: var(--primary-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .vocab-info h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--dark-color);
+          }
+          .vocab-info p {
+            margin: 0.25rem 0 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+          }
+          .vocab-delete-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+          }
+          .vocab-delete-btn:hover {
+            background: #fff1f2;
+            color: #ef4444;
+          }
+          .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: #f8fafc;
+            border-radius: var(--radius-xl);
+            margin-top: 2rem;
+          }
+          .empty-state h3 { margin-top: 1.5rem; color: var(--dark-color); }
+          .empty-state p { color: var(--text-muted); }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="wordlist-container animate-fade-in">
+      {!currentVocabId && (
+        <div className="save-form-container">
+          <form onSubmit={handleSave} className="save-form">
+            <input 
+              type="text" 
+              placeholder="단어장 이름을 입력하세요 (예: 1단어장, 토익 등)" 
+              value={listName}
+              onChange={(e) => setListName(e.target.value)}
+              className="save-input"
+              required
+            />
+            <button type="submit" className="btn btn-primary">
+              <Save size={18} /> 가입하여 저장하기
+            </button>
+          </form>
+          <p className="save-hint">현재 추출된 단어들을 새 단어장으로 저장할 수 있습니다.</p>
+        </div>
+      )}
+
       <div className="wordlist-header">
         <div className="header-left">
-          <h2>Vocabulary List</h2>
-          <span className="badge">{words.length} words found</span>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <h2 style={{ margin: 0 }}>{currentVocabId ? currentVocab?.name : "New Vocabulary"}</h2>
+            <span className="badge-inline">{words.length} words</span>
+          </div>
         </div>
         <div className="header-right">
+          <button className="btn btn-outline" onClick={() => setIsManaging(true)}>
+            <List size={18} /> All Lists
+          </button>
           <div className="view-toggle">
             <button 
               className={`toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
@@ -69,7 +249,7 @@ export default function WordList({ words, onStartStudy }) {
                     <div className="detail-row">
                       <strong>Synonyms</strong>
                       <div className="tags">
-                        {item.synonyms.map((syn, i) => (
+                        {item.synonyms?.map((syn, i) => (
                           <span key={i} className="tag">{syn}</span>
                         ))}
                       </div>
@@ -99,7 +279,7 @@ export default function WordList({ words, onStartStudy }) {
                   <td><span className="pos-badge small">{item.pos}</span></td>
                   <td className="font-medium">{item.meaning}</td>
                   <td className="text-muted text-sm">{item.example}</td>
-                  <td>{item.synonyms.join(', ')}</td>
+                  <td>{item.synonyms?.join(', ')}</td>
                 </tr>
               ))}
             </tbody>
@@ -108,6 +288,44 @@ export default function WordList({ words, onStartStudy }) {
       )}
 
       <style>{`
+        .save-form-container {
+          background: #f0f7ff;
+          border-radius: var(--radius-lg);
+          padding: 1.5rem;
+          margin-bottom: 2rem;
+          border: 1px solid #bfdbfe;
+        }
+        .save-form {
+          display: flex;
+          gap: 1rem;
+        }
+        .save-input {
+          flex: 1;
+          padding: 0.75rem 1rem;
+          border: 1px solid #cbd5e1;
+          border-radius: var(--radius-md);
+          font-size: 1rem;
+        }
+        .save-input:focus {
+          outline: none;
+          border-color: var(--primary-color);
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .save-hint {
+          font-size: 0.85rem;
+          color: #64748b;
+          margin: 0.5rem 0 0;
+        }
+        .badge-inline {
+          font-size: 0.85rem;
+          color: var(--primary-color);
+          font-weight: 600;
+          background: #eff6ff;
+          padding: 0.1rem 0.5rem;
+          border-radius: 4px;
+          display: inline-block;
+          margin-top: 0.25rem;
+        }
         .wordlist-container {
           max-width: 1200px;
           margin: 2rem auto;
@@ -138,7 +356,7 @@ export default function WordList({ words, onStartStudy }) {
         .header-right {
           display: flex;
           align-items: center;
-          gap: 1.5rem;
+          gap: 1rem;
         }
         
         .view-toggle {
@@ -355,3 +573,4 @@ export default function WordList({ words, onStartStudy }) {
     </div>
   );
 }
+

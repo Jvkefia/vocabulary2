@@ -15,6 +15,7 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
+  const [isGuest, setIsGuest] = useState(false);
   const [loading, setLoading] = useState(true);
   async function signup(email, password) {
     console.log("[AuthContext - signup] 시작", { email });
@@ -40,10 +41,27 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function loginAsGuest() {
+    console.log("[AuthContext - loginAsGuest] 시작");
+    const guestUser = {
+      uid: "guest-user-id",
+      email: "guest@example.com",
+      displayName: "Guest"
+    };
+    setCurrentUser(guestUser);
+    setIsGuest(true);
+    setLoading(false);
+    console.log("[AuthContext - loginAsGuest] 완료");
+  }
+
   async function logout() {
     console.log("[AuthContext - logout] 시작");
     try {
-      await signOut(auth);
+      if (!isGuest) {
+        await signOut(auth);
+      }
+      setCurrentUser(null);
+      setIsGuest(false);
       console.log("[AuthContext - logout] 완료");
     } catch (error) {
       console.error("[AuthContext - logout] 에러:", error);
@@ -67,8 +85,10 @@ export function AuthProvider({ children }) {
 
   const value = {
     currentUser,
+    isGuest,
     signup,
     login,
+    loginAsGuest,
     logout
   };
 

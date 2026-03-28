@@ -99,3 +99,52 @@
 .toggle-button:hover {
   text-decoration: underline;
 }
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #eee;
+}
+
+.auth-divider:not(:empty)::before {
+  margin-right: .5rem;
+}
+
+.auth-divider:not(:empty)::after {
+  margin-left: .5rem;
+}
+
+.guest-button {
+  width: 100%;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+  color: #555;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.guest-button:hover {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-color: #ccc;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.guest-button:active {
+  transform: translateY(0);
+}

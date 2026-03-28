@@ -8,7 +8,7 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login, signup } = useAuth();
+  const { login, signup, loginAsGuest } = useAuth();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -23,7 +23,7 @@ export default function AuthPage() {
       }
     } catch (err) {
       console.error("Firebase Auth Error:", err);
-      setError(`Failed to ${isLogin ? "log in" : "create an account"}. ${err.message}`);
+      setError(`${isLogin ? "로그인" : "회원가입"}에 실패했습니다. ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -32,37 +32,48 @@ export default function AuthPage() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h2>{isLogin ? "Login" : "Sign Up"}</h2>
+        <h2>{isLogin ? "로그인" : "회원가입"}</h2>
         {error && <div className="error-message">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Email</label>
+            <label>이메일</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="Enter your email"
+              placeholder="이메일을 입력하세요"
             />
           </div>
           <div className="form-group">
-            <label>Password</label>
+            <label>비밀번호</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="Enter your password"
+              placeholder="비밀번호를 입력하세요"
             />
           </div>
           <button disabled={loading} type="submit" className="auth-button">
-            {isLogin ? "Log In" : "Sign Up"}
+            {isLogin ? "로그인" : "회원가입"}
           </button>
         </form>
+        
+        <div className="auth-divider">또는</div>
+        
+        <button 
+          onClick={loginAsGuest} 
+          className="guest-button"
+          disabled={loading}
+        >
+          로그인 없이 바로하기
+        </button>
+
         <div className="auth-toggle">
-          {isLogin ? "Need an account?" : "Already have an account?"}{" "}
+          {isLogin ? "계정이 없으신가요?" : "이미 계정이 있으신가요?"}{" "}
           <button onClick={() => setIsLogin(!isLogin)} className="toggle-button">
-            {isLogin ? "Sign Up" : "Log In"}
+            {isLogin ? "회원가입" : "로그인"}
           </button>
         </div>
       </div>
